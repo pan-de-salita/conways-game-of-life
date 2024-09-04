@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from "react";
 import { COLS, createEmptyGrid, DIRECTIONS, ROWS } from "./utils/utils";
 import { twMerge } from "tailwind-merge";
 import { PlayPauseButton } from "./components/PlayPauseButton";
+import { Button } from "./components/Button";
 
 function App() {
   const [grid, setGrid] = useState<number[][]>(createEmptyGrid);
@@ -82,7 +83,7 @@ function App() {
     });
 
     setTimeout(runGameOfLife, 100);
-  }, [playingRef, setGrid]);
+  }, [setGrid]);
 
   return (
     <div className="flex h-screen w-screen flex-col items-center justify-center gap-4 bg-blue-500 p-4">
@@ -98,6 +99,27 @@ function App() {
             }
           }}
         />
+        <Button
+          onClick={() => {
+            setGrid((g) =>
+              g
+                .map((arr) => [...arr])
+                .map((_) =>
+                  Array.from(Array(COLS), () => (Math.random() > 0.75 ? 1 : 0)),
+                ),
+            );
+          }}
+        >
+          Seed
+        </Button>
+        <Button
+          onClick={() => {
+            setGrid(createEmptyGrid());
+            setIsPlaying(false);
+          }}
+        >
+          Clear
+        </Button>
       </div>
       <div
         style={{
