@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { COLS, createEmptyGrid, DIRECTIONS, ROWS } from "./utils/utils";
 import { twMerge } from "tailwind-merge";
 import { PlayPauseButton } from "./components/PlayPauseButton";
@@ -10,6 +10,29 @@ function App() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMouseDown, setIsMouseDown] = useState(false);
   const [speed, setSpeed] = useState(100);
+
+  const getGridSize = () => {
+    const size = Math.min(
+      (window.innerWidth - 32) / COLS,
+      (window.innerHeight - 200) / ROWS,
+      15,
+    );
+
+    return size;
+  };
+  const [cellSize, setCellSize] = useState(getGridSize());
+
+  useEffect(() => {
+    const handleResize = () => {
+      setCellSize(getGridSize());
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  });
 
   const speedRef = useRef(speed);
   speedRef.current = speed;
@@ -121,7 +144,8 @@ function App() {
   };
 
   return (
-    <div className="flex h-screen w-screen flex-col items-center justify-center gap-4 bg-blue-500 p-4">
+    <div className="relative flex h-screen w-screen flex-col items-center justify-center gap-4 p-4">
+      <div className="absolute inset-0 -z-10 h-full w-full items-center px-5 py-24 [background:radial-gradient(125%_125%_at_50%_10%,#000_40%,#a333ee_100%)]"></div>
       <h1 className="text-xl md:text-2xl">Conway's Game of Life</h1>
       <div className="flex items-center gap-4">
         <PlayPauseButton
@@ -169,8 +193,8 @@ function App() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: `repeat(${COLS}, 20px)`,
-          gridTemplateRows: `repeat(${ROWS}, 20px)`,
+          gridTemplateColumns: `repeat(${COLS}, ${cellSize}px)`,
+          gridTemplateRows: `repeat(${ROWS}, ${cellSize}px)`,
         }}
       >
         {grid.map((rows, rowIdx) =>
