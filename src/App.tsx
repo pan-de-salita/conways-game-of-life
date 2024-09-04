@@ -3,10 +3,16 @@ import { COLS, createEmptyGrid, DIRECTIONS, ROWS } from "./utils/utils";
 import { twMerge } from "tailwind-merge";
 import { PlayPauseButton } from "./components/PlayPauseButton";
 import { Button } from "./components/Button";
+import { Select } from "./components/Select";
 
 function App() {
   const [grid, setGrid] = useState<number[][]>(createEmptyGrid);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isMouseDown, setIsMouseDown] = useState(false);
+  const [speed, setSpeed] = useState(100);
+
+  const speedRef = useRef(speed);
+  speedRef.current = speed;
 
   const playingRef = useRef(isPlaying);
   playingRef.current = isPlaying;
@@ -21,7 +27,7 @@ function App() {
       return g
         .map((arr) => [...arr])
         .map((row, rowIdx) =>
-          row.map((_, colIdx) => {
+          row.map((cell, colIdx) => {
             const liveNeighbors = DIRECTIONS.reduce((acc, [x, y]) => {
               const neighborX = x + rowIdx;
               const neighborY = y + colIdx;
@@ -38,7 +44,6 @@ function App() {
               return acc;
             }, 0);
 
-            let cell = g[rowIdx][colIdx];
             if (cell && (liveNeighbors < 2 || liveNeighbors > 3)) {
               cell = 0;
             } else if (!cell && liveNeighbors === 3) {
@@ -82,8 +87,38 @@ function App() {
       // return newGrid;
     });
 
-    setTimeout(runGameOfLife, 100);
+    setTimeout(runGameOfLife, speedRef.current);
   }, [setGrid]);
+
+  const handleMouseDown = () => {
+    setIsMouseDown(true);
+  };
+
+  const handleMouseUp = () => {
+    setIsMouseDown(false);
+  };
+
+  const toggleCellState = (rowToToggle: number, colToToggle: number) => {
+    setGrid((g) =>
+      g
+        .map((arr) => [...arr])
+        .map((row, rowIdx) =>
+          row.map((cell, colIdx) =>
+            rowIdx === rowToToggle && colIdx === colToToggle
+              ? cell
+                ? 0
+                : 1
+              : cell,
+          ),
+        ),
+    );
+  };
+
+  const handleMouseEnter = (row: number, col: number) => {
+    if (isMouseDown) {
+      toggleCellState(row, col);
+    }
+  };
 
   return (
     <div className="flex h-screen w-screen flex-col items-center justify-center gap-4 bg-blue-500 p-4">
@@ -120,6 +155,16 @@ function App() {
         >
           Clear
         </Button>
+        <Select
+          label="speed selector"
+          value={speed}
+          onChange={(e) => setSpeed(parseInt(e.target.value))}
+        >
+          <option value={1000}>Slow</option>
+          <option value={500}>Medium</option>
+          <option value={100}>Fast</option>
+          <option value={50}>Lightning</option>
+        </Select>
       </div>
       <div
         style={{
@@ -129,13 +174,17 @@ function App() {
         }}
       >
         {grid.map((rows, rowIdx) =>
-          rows.map((_, colIdx) => (
+          rows.map((cell, colIdx) => (
             <button
               key={`${rowIdx}-${colIdx}`}
               className={twMerge(
                 "border border-[#9050e9]",
-                grid[rowIdx][colIdx] ? "bg-[#ad7bee]" : "bg-[#240643]",
+                cell ? "bg-[#ad7bee]" : "bg-[#240643]",
               )}
+              onMouseDown={handleMouseDown}
+              onMouseUp={handleMouseUp}
+              onMouseEnter={() => handleMouseEnter(rowIdx, colIdx)}
+              onClick={() => toggleCellState(rowIdx, colIdx)}
             />
           )),
         )}
