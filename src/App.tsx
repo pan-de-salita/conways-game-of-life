@@ -16,43 +16,69 @@ function App() {
     }
 
     setGrid((g) => {
-      const newGrid = g.map((arr) => [...arr]);
+      // own attempt:
+      return g
+        .map((arr) => [...arr])
+        .map((row, rowIdx) =>
+          row.map((_, colIdx) => {
+            const liveNeighbors = DIRECTIONS.reduce((acc, [x, y]) => {
+              const neighborX = x + rowIdx;
+              const neighborY = y + colIdx;
 
-      for (let row = 0; row < ROWS; row++) {
-        for (let col = 0; col < COLS; col++) {
-          let cell = newGrid[row][col];
-          let liveNeighbors = 0;
+              if (
+                neighborX >= 0 &&
+                neighborX < ROWS &&
+                neighborY >= 0 &&
+                neighborY < COLS
+              ) {
+                return (acc += g[neighborX][neighborY] ? 1 : 0);
+              }
 
-          DIRECTIONS.forEach(([directionX, directionY]) => {
-            // own attempt:
-            // if (newGrid[row + directionX][col + directionY]) {
-            //   liveNeighbors++;
-            // }
+              return acc;
+            }, 0);
 
-            const neighborX = row + directionX;
-            const neighborY = col + directionY;
-
-            if (
-              // check if position is within grid:
-              neighborX >= 0 &&
-              neighborX < ROWS &&
-              neighborY >= 0 &&
-              neighborY < COLS
-            ) {
-              // check if neighboring cell is 0 (dead) or 1 (live)
-              liveNeighbors += g[neighborX][neighborY] ? 1 : 0;
+            let cell = g[rowIdx][colIdx];
+            if (cell && (liveNeighbors < 2 || liveNeighbors > 3)) {
+              cell = 0;
+            } else if (!cell && liveNeighbors === 3) {
+              cell = 1;
             }
-          });
 
-          if (cell && (liveNeighbors < 2 || liveNeighbors > 3)) {
-            cell = 0;
-          } else if (!cell && liveNeighbors === 3) {
-            cell = 1;
-          }
-        }
-      }
+            return cell;
+          }),
+        );
 
-      return newGrid;
+      // tutorial's attempt:
+      // const newGrid = g.map((arr) => [...arr]);
+      //
+      // for (let row = 0; row < ROWS; row++) {
+      //   for (let col = 0; col < COLS; col++) {
+      //     let cell = newGrid[row][col];
+      //     let liveNeighbors = 0;
+      //
+      //     DIRECTIONS.forEach(([directionX, directionY]) => {
+      //       const neighborX = row + directionX;
+      //       const neighborY = col + directionY;
+      //
+      //       if (
+      //         neighborX >= 0 &&
+      //         neighborX < ROWS &&
+      //         neighborY >= 0 &&
+      //         neighborY < COLS
+      //       ) {
+      //         liveNeighbors += g[neighborX][neighborY] ? 1 : 0;
+      //       }
+      //     });
+      //
+      //     if (cell && (liveNeighbors < 2 || liveNeighbors > 3)) {
+      //       cell = 0;
+      //     } else if (!cell && liveNeighbors === 3) {
+      //       cell = 1;
+      //     }
+      //   }
+      // }
+      //
+      // return newGrid;
     });
 
     setTimeout(runGameOfLife, 100);
